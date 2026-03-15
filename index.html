@@ -24,8 +24,7 @@
   /* ── PAGE ROUTER ── */
   .page{display:none;}
   .page.active{display:block;}
-  #page-app{display:none;}
-  #page-app.active{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:0 16px 60px;}
+  #page-app.active{display:flex!important;flex-direction:column;align-items:center;min-height:100vh;padding:0 16px 60px;}
 
   /* ── SHARED NAV ── */
   nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 40px;background:rgba(4,8,15,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
@@ -489,7 +488,7 @@
   <!-- FOOTER -->
   <footer>
     <div class="disclaimer" style="max-width:800px;margin:0 auto 24px;text-align:center;"><strong>⚠ LEGAL DISCLAIMER:</strong> ScamShield is an AI-powered tool designed to help identify potential scam patterns. It does not guarantee detection of all scams and should not be used as your sole means of fraud protection. Results are for informational purposes only. Victory Hour Multimedia Inc. is not liable for any losses incurred as a result of reliance on ScamShield's analysis. Always exercise caution and report suspicious activity to the appropriate authorities.</div>
-    <p style="margin-bottom:8px;"><strong style="color:#2a5a7a;">SCAMSHIELD</strong> &nbsp;·&nbsp; <a href="#">Privacy</a> &nbsp;·&nbsp; <a href="#">Terms</a> &nbsp;·&nbsp; <a href="mailto:info@victoryhourmedia.com">Contact</a></p>
+    <p style="margin-bottom:8px;"><strong style="color:#2a5a7a;">SCAMSHIELD</strong> &nbsp;·&nbsp; <a href="#">Privacy</a> &nbsp;·&nbsp; <a href="#">Terms</a> &nbsp;·&nbsp; <a href="/cdn-cgi/l/email-protection#2f464149406f59464c5b405d5647405a5d424a4b464e014c4042">Contact</a></p>
     <p>A <a href="https://victoryhourmedia.com" target="_blank">Victory Hour Multimedia</a> product &nbsp;·&nbsp; 10% of proceeds fight world hunger</p>
   </footer>
 </div><!-- end page-landing -->
@@ -524,7 +523,7 @@
           <div class="error-msg" id="signup-error">Please enter a valid email address.</div>
         </div>
         <button class="submit-btn" id="signup-submit" onclick="handleSignup()">🛡️ &nbsp; Activate Free Access</button>
-        <p class="signup-legal">By signing up you agree to receive occasional emails about ScamShield updates and security tips. We never sell your data. Unsubscribe anytime.<br>Victory Hour Multimedia Inc. · info@victoryhourmedia.com</p>
+        <p class="signup-legal">By signing up you agree to receive occasional emails about ScamShield updates and security tips. We never sell your data. Unsubscribe anytime.<br>Victory Hour Multimedia Inc. · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4b22252d240b3d22283f24393223243e39262e2f222a65282426">[email&#160;protected]</a></p>
       </div>
 
       <!-- SUCCESS STATE -->
@@ -620,7 +619,7 @@
 
 
 <!-- ══ PAYPAL SDK ══ -->
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   function initPayPalButtons() {
     paypal.Buttons({
       style:{shape:'rect',color:'black',layout:'horizontal',label:'subscribe',tagline:false},
@@ -667,11 +666,30 @@
 
   // ── Router ──
   function showPage(name) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-' + name).classList.add('active');
-    window.scrollTo(0,0);
+    document.querySelectorAll('.page').forEach(function(p) {
+      p.classList.remove('active');
+      p.style.display = 'none';
+    });
+    const target = document.getElementById('page-' + name);
+    if (!target) return;
+    target.classList.add('active');
+    target.style.display = (name === 'app') ? 'flex' : 'block';
+    window.scrollTo(0, 0);
     updateNav(name);
   }
+
+  // Initialize pages on load
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.page').forEach(function(p) {
+      p.style.display = 'none';
+    });
+    const landing = document.getElementById('page-landing');
+    if (landing) {
+      landing.style.display = 'block';
+      landing.classList.add('active');
+    }
+    updateNav('landing');
+  });
 
   function updateNav(page) {
     const user = localStorage.getItem('ss_user');
@@ -803,14 +821,10 @@
     document.getElementById('input-panel').classList.add('scanning');
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('https://scamshield-proxy.victoryhourdream.workers.dev', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          system: `You are ScamShield, an expert scam detection AI. Analyze the provided text and return ONLY a valid JSON object (no markdown, no backticks, no preamble) with exactly these fields:
-{"level":"safe"|"suspicious"|"danger","score":0-100,"verdict":"one sentence verdict","red_flags":["flag1"],"green_flags":["flag1"],"recommendation":"what the user should do"}`,
           messages: [{role:'user', content:`Analyze this for scams: "${text}"`}]
         })
       });
@@ -902,10 +916,7 @@
 
   // ── Init ──
   (function init() {
-    const user = localStorage.getItem('ss_user');
     updateNav('landing');
-    // If already signed up, show app link in nav
-    if (user) updateNav('landing');
   })();
 </script>
 
